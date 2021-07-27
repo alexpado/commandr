@@ -1,19 +1,29 @@
 package fr.alexpado.commandr.impl;
 
+import fr.alexpado.commandr.interfaces.ICommandContext;
 import fr.alexpado.commandr.interfaces.ICommandResult;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CommandResult implements ICommandResult {
+public class CommandResult<T> implements ICommandResult<T> {
 
     private final boolean hasResult;
 
     @Nullable
-    private final Object  data;
+    private final Object data;
+
+    @NotNull
+    private final ICommandContext<T> context;
 
     /**
      * Create a new instance of {@link CommandResult} without a result.
+     *
+     * @param context
+     *         The {@link ICommandContext} currently being used.
      */
-    public CommandResult() {
+    public CommandResult(@NotNull ICommandContext<T> context) {
+
+        this.context = context;
 
         this.hasResult = false;
         this.data      = null;
@@ -24,8 +34,12 @@ public class CommandResult implements ICommandResult {
      *
      * @param data
      *         The data returned by a command.
+     * @param context
+     *         The {@link ICommandContext} currently being used.
      */
-    public CommandResult(@Nullable Object data) {
+    public CommandResult(@NotNull ICommandContext<T> context, @Nullable Object data) {
+
+        this.context = context;
 
         this.hasResult = true;
         this.data      = data;
@@ -58,5 +72,16 @@ public class CommandResult implements ICommandResult {
         }
 
         return this.data;
+    }
+
+    /**
+     * Retrieve the context that was in-use when this {@link ICommandResult} was created.
+     *
+     * @return An {@link ICommandContext}
+     */
+    @Override
+    public @NotNull ICommandContext<T> getContext() {
+
+        return this.context;
     }
 }

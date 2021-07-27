@@ -90,35 +90,34 @@ public abstract class CommandHandler<T> implements ICommandHandler<T> {
      * @return An {@link ICommandResult} implementation representing the result of the command.
      */
     @Override
-    public ICommandResult handle(@NotNull T emitter, @NotNull String message) {
+    public ICommandResult<T> handle(@NotNull T emitter, @NotNull String message) {
 
-        String prefix = this.getApplicablePrefix(emitter).toLowerCase();
-        String msg    = message.toLowerCase();
-        String label  = msg.split(" ")[0].replace(prefix, "");
+        String             prefix  = this.getApplicablePrefix(emitter).toLowerCase();
+        String             msg     = message.toLowerCase();
+        String             label   = msg.split(" ")[0].replace(prefix, "");
+        ICommandContext<T> context = this.createContext(emitter);
+        this.listeners.values().forEach(listener -> listener.onContextCreated(context));
 
         Optional<ICommand<T>> optionalCommand = this.getCommand(label);
 
         if (optionalCommand.isEmpty()) {
             this.listeners.values().forEach(listener -> listener.onCommandNotFound(this, emitter, message));
-            return new CommandResult();
+            return new CommandResult<>(context);
         }
 
-        ICommand<T>        command = optionalCommand.get();
-        ICommandContext<T> context = this.createContext(emitter);
-        this.listeners.values().forEach(listener -> listener.onContextCreated(context));
-
-        ICommandEvent<T> event = new CommandEvent<>(context, this, command, emitter, message);
+        ICommand<T>      command = optionalCommand.get();
+        ICommandEvent<T> event   = new CommandEvent<>(context, this, command, emitter, message);
         this.listeners.values().forEach(listener -> listener.onCommandExecution(event));
 
         if (event.isCancelled()) {
-            return new CommandResult();
+            return new CommandResult<>(context);
         }
 
         try {
-            return new CommandResult(command.execute(context, message));
+            return new CommandResult<>(context, command.execute(context, message));
         } catch (SyntaxErrorException e) {
             this.listeners.values().forEach(listener -> listener.onSyntaxError(context));
-            return new CommandResult();
+            return new CommandResult<>(context);
         } catch (InvocationTargetException e) {
             // If an exception is thrown within a command, it will be wrapped into an InvocationTargetException
             // by the JDK. The real exception thrown within the command will be the cause.
@@ -129,10 +128,10 @@ public abstract class CommandHandler<T> implements ICommandHandler<T> {
             } else {
                 this.listeners.values().forEach(listener -> listener.onCommandException(event, e));
             }
-            return new CommandResult();
+            return new CommandResult<>(context);
         } catch (Exception e) {
             this.listeners.values().forEach(listener -> listener.onCommandException(event, e));
-            return new CommandResult();
+            return new CommandResult<>(context);
         }
     }
 

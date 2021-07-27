@@ -1,8 +1,9 @@
 package fr.alexpado.commandr.interfaces;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface ICommandResult {
+public interface ICommandResult<T> {
 
     /**
      * Check whether a result is available (command executed).
@@ -20,5 +21,12 @@ public interface ICommandResult {
      *         Threw if {@link #isResultAvailable()} is false.
      */
     @Nullable Object getResult();
+
+    /**
+     * Retrieve the context that was in-use when this {@link ICommandResult} was created.
+     *
+     * @return An {@link ICommandContext}
+     */
+    @NotNull ICommandContext<T> getContext();
 
 }
