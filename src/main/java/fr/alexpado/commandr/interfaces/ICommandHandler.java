@@ -51,7 +51,7 @@ public interface ICommandHandler<T> {
      *
      * @return An {@link ICommandResult} implementation.
      */
-    ICommandResult handle(@NotNull T emitter, @NotNull String message);
+    ICommandResult<T> handle(@NotNull T emitter, @NotNull String message);
 
     /**
      * Create an {@link ICommandContext} instance from the provided command emitter {@link T}.
